@@ -27,7 +27,7 @@ const AdminAuthRole = "admin"
 const DeployerAuthRole = "deployer"
 const ViewerAuthRole = "viewer"
 
-var RoleList = []string{AwsAdminAuthRole, AdminAuthRole, DeployerAuthRole, ViewerAuthRole}
+var RoleList = []string{DeployerAuthRole, ViewerAuthRole, AwsAdminAuthRole, AdminAuthRole}
 
 func GetAwsAdminRoleFmt(accountId string) string {
 	return fmt.Sprintf("arn:aws:iam::%v:role/Administrator-SSO", accountId)
