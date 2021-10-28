@@ -7,6 +7,7 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"time"
 
 	"gopkg.in/ini.v1"
 )
@@ -37,6 +38,10 @@ func contains(value string, array []string) bool {
 }
 
 func validateClusterName(clusterName interface{}) error {
+	if clusterName == "" {
+		return fmt.Errorf("cluster name cannot be empty")
+	}
+
 	keys := make([]string, 0, len(EnvOktaMap))
 	for k := range EnvOktaMap {
 		keys = append(keys, k)
@@ -59,4 +64,32 @@ func SamlProfiles() []string {
 		os.Exit(1)
 	}
 	return samlCfgFile.SectionStrings()
+}
+
+func AwsCredentials() string {
+	timeLayout := "2006-01-02T15:04:05-07:00"
+	currDate, _ := time.Parse(timeLayout, timeLayout)
+	var awsEnv string
+
+	homeDir, _ := os.UserHomeDir()
+	awsCredFilePath := path.Join(homeDir, ".aws", "credentials")
+	awsCredFile, err := ini.Load(awsCredFilePath)
+
+	if err != nil {
+		fmt.Printf("ERROR: Cannot read aws credentials file: %v\n", awsCredFile)
+		return ""
+	}
+	for _, s := range awsCredFile.Sections() {
+		if s.HasKey("x_security_token_expires") {
+			tokenDate, _ := s.Key("x_security_token_expires").TimeFormat(timeLayout)
+			if tokenDate.After(currDate) {
+				currDate = tokenDate
+				awsEnv = s.Name()
+			}
+		}
+	}
+	if awsEnv != "" {
+		return strings.Split(awsEnv, "-")[1]
+	}
+	return awsEnv
 }

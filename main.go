@@ -8,7 +8,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 )
 
-func getProps() Icauth {
+func getProps(lastAwsEnv string) Icauth {
 	var qs = []*survey.Question{
 		{
 			Name: "authRole",
@@ -19,7 +19,7 @@ func getProps() Icauth {
 		},
 		{
 			Name:     "clusterName",
-			Prompt:   &survey.Input{Message: "Please enter ClusterName:"},
+			Prompt:   &survey.Input{Message: "Please enter ClusterName", Default: lastAwsEnv},
 			Validate: validateClusterName,
 		},
 	}
@@ -40,7 +40,9 @@ func main() {
 	// Check if all the dependencies are present or not
 	checkDependency()
 
-	icauth := getProps()
+	lastAwsEnv := AwsCredentials()
+
+	icauth := getProps(lastAwsEnv)
 	icauth.ForceRefresh = *forceRefresh
 
 	err := icauth.AwsLogin()
